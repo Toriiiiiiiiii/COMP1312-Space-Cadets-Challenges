@@ -1,8 +1,17 @@
 #!/usr/bin/python3
+
+# COMP1312 : Programming 1
+# Space Cadets Challenge 1 : ECS Name
+# ---
+# Author: Tori Hall
+# Date: 07-10-2025
+# Description: Fetches user name and basic info from ECS website.
+
 import requests
 import sys
 import re
 
+# Regular expressions precompiled for faster usage
 titleRegex = re.compile("<title>(.+)</title>")
 descRegex = re.compile("<meta name=\"description\" content=\"(.+)\" />")
 schoolRegex = re.compile("<meta name=\"school_metatag\" content=\"(.+)\" />")
@@ -34,6 +43,8 @@ def getAndDisplayUserInfo(id: str) -> bool:
     school = schoolRegex.search(html).group(1)
     faculty = facultyRegex.search(html).group(1)
 
+    # Outputs all information in a markdown format. Can result in nice
+    # formatting when piped to a .md file.
     print(f"# {name}")
     print(f"## University email: {id}@soton.ac.uk")
     print("---")
