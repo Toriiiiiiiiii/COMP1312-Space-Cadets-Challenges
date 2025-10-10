@@ -51,6 +51,8 @@ def getSingleton(lex) -> Token:
         return Token(lex.line, lex.col, lex.path, "RPAREN", lexConsume(lex))
     elif ch == ";":
         return Token(lex.line, lex.col, lex.path, "SEMICOLON", lexConsume(lex))
+    elif ch == ",":
+        return Token(lex.line, lex.col, lex.path, "SEP", lexConsume(lex))
 
     else:
         return Token(lex.line, lex.col, lex.path, "NULL", "")
@@ -74,6 +76,9 @@ def getKeyword(lex: Lexer) -> Token:
             break
 
         wrd += lexConsume(lex)
+
+    if wrd in ["void", "int", "float", "string", "array"]:
+        return Token(line, col, lex.path, "TYPENAME", wrd)
 
     return Token(line, col, lex.path, "KEYWORD", wrd)
 
@@ -101,6 +106,57 @@ def getStringLiteral(lex: Lexer) -> Token:
         return Token(lex.line, lex.col, lex.path, "NULL", "")
 
 
+# Gets a float/int
+def getNumber(lex) -> Token:
+    numStarts = "-.0123456789"
+    numBody = ".0123456789"
+
+    numDots = 0
+    if lexAt(lex) not in numStarts:
+        return Token(lex.line, lex.col, lex.path, "NULL", "")
+
+    line = lex.line
+    col = lex.col
+    lit = lexConsume(lex)
+
+    while lex.index < len(lex.src) and lexAt(lex) in numBody:
+        ch = lexConsume(lex)
+
+        if ch == ".":
+            if numDots != 0:
+                print(f"{lex.path}:{line}:{col}: Lexer Error - Invalid Floating Point literal.")
+                exit(1)
+
+            numDots += 1
+
+        lit += ch
+
+    if numDots == 0:
+        return Token(line, col, lex.path, "INTLIT", lit)
+    else:
+        return Token(line, col, lex.path, "FLOATLIT", lit)
+
+
+# Gets a binary/unary operator.
+def getOperator(lex) -> Token:
+    operators = "+-*/%=<>"
+    numStarts = ".0123456789"
+    if lexAt(lex) not in operators:
+        return Token(lex.line, lex.col, lex.path, "NULL", "")
+
+    if lexAt(lex) == "-" and lex.src[lex.index + 1] in numStarts:
+        return getNumber(lex)
+
+    line = lex.line
+    col = lex.col
+    lit = ""
+
+    while lex.index < len(lex.src) and lexAt(lex) in operators:
+        lit += lexConsume(lex)
+
+    return Token(line, col, lex.path, "OPER", lit)
+
+
 # Extract the next token from the source code.
 def getToken(lex) -> Token:
     while lex.index < len(lex.src):
@@ -120,6 +176,16 @@ def getToken(lex) -> Token:
         if tok.tokType != "NULL":
             return tok
 
+        tok = getOperator(lex)
+        if tok.tokType != "NULL":
+            return tok
+
+        tok = getNumber(lex)
+        if tok.tokType != "NULL":
+            return tok
+
+        print(f"{lex.path}:{lex.line}:{lex.col}: Lexer Error - Unrecognised token '{lexAt(lex)}'.")
+        return Token(lex.line, lex.col, lex.path, "ERROR", "ERR_INVALID_TOK")
         lexConsume(lex)
 
     return Token(lex.line, lex.col, lex.path, "EOF", "EOF")

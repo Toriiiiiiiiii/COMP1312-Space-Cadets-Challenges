@@ -1,2 +1,3 @@
-print("Hello \"World\"!");
-print("hello again");
+defun main(); int {
+    print("Hello, World!");
+}
