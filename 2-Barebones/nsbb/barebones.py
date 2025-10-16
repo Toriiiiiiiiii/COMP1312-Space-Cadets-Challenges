@@ -8,8 +8,9 @@
 # Description: Compiler for the Barebones programming language
 
 import sys
+import os
 
-from bbc import lexer, parser, interpreter
+from bbc import lexer, parser, interpreter, compiler
 
 
 def printUsage():
@@ -24,10 +25,18 @@ def interpretProgram(ast: parser.ASTNode):
     inter = interpreter.Interpreter()
     interpreter.intGetFunctions(inter, ast)
 
-    returnValue = interpreter.intRunFunction(inter, "main", [])
+    returnValue, func = interpreter.intRunFunction(inter, "main", [])
 
-    # print(f"-- Process finished with code {returnValue.val}")
-    # return int(returnValue.val)
+    if returnValue is None:
+        print("FATAL: NO MAIN FUNCTION FOUND, ABORTING.")
+        exit(1)
+
+    exitCode = 0
+    if returnValue.valType == "INTEGER":
+        exitCode = int(returnValue.val)
+
+    print(f"-- Process finished with code {exitCode}")
+    return exitCode
 
 
 if __name__ == "__main__":
@@ -62,4 +71,23 @@ if __name__ == "__main__":
 
     # Interpret AST
     if sys.argv[1] == "int":
-        interpretProgram(ast)
+        exit(interpretProgram(ast))
+
+    elif sys.argv[1] == "com":
+        comp = compiler.Compiler(ast)
+        asm = compiler.compCompile(comp)
+
+        with open("nsbb.out.asm", "w") as f:
+            f.write(asm)
+
+        cmd = "nasm -felf64 nsbb.out.asm -o nsbb.out.o"
+        print(f"[CMD] {cmd}")
+        code = os.system(cmd)
+
+        if code != 0:
+            print(f"[ERR] nasm returned with code {code}. Aborting...")
+            exit(code)
+
+        # cmd = "rm nsbb.out.asm"
+        # print(f"[CMD] {cmd}")
+        # os.system(cmd)

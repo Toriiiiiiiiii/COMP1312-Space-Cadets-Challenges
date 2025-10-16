@@ -1,0 +1,2 @@
+zero X;
+incr X;

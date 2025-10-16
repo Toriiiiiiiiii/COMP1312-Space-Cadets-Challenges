@@ -58,6 +58,7 @@ def parseParen(tok: lexer.Token, par: Parser) -> ASTNode:
             if parseAt(par).tokType == "RPAREN" and parseAt(par).val == ")":
                 isDone = True
             elif parseAt(par).tokType == "SEP":
+                parseConsume(par)
                 continue
 
         if not len(par.toks):
@@ -99,6 +100,15 @@ def parseAtom(par: Parser) -> ASTNode:
     elif tok.tokType == "STRING":
         return ASTNode(tok.line, tok.col, tok.file, "STRING", tok.val)
 
+    elif tok.tokType == "TYPENAME":
+        ident = parseConsume(par)
+        if ident.tokType != "KEYWORD":
+            # TODO: Improve error message
+            print("Invalid syntax.")
+            exit(1)
+
+        return ASTNode(tok.line, tok.col, tok.file, "TYPE_IDENT", f"{tok.val}:{ident.val}")
+
     elif tok.tokType == "KEYWORD":
         if tok.val == "defun":
             # Get function name
@@ -135,12 +145,22 @@ def parseAtom(par: Parser) -> ASTNode:
         return parseParen(tok, par)
 
 
+def parseFnCall(par: Parser) -> ASTNode:
+    node = parseAtom(par)
+    if len(par.toks) and node.nodeType == "KEYWORD" and parseAt(par).tokType == "LPAREN" and parseAt(par).val == "(":
+        node.nodeType = "FNCALL"
+        node.children = parseAtom(par).children
+
+    return node
+
+
+
 def parseExp(par: Parser) -> ASTNode:
-    left = parseAtom(par)
+    left = parseFnCall(par)
 
     while len(par.toks) and parseAt(par).val == "**":
         tok = parseConsume(par)
-        right = parseAtom(par)
+        right = parseFnCall(par)
         temp = ASTNode(tok.line, tok.col, tok.file, "OPER", tok.val)
 
         temp.children.append(left)
@@ -183,12 +203,35 @@ def parseSum(par: Parser) -> ASTNode:
     return left
 
 
-def parseExpression(par: Parser) -> ASTNode:
-    node = parseSum(par)
+def parseAssign(par: Parser) -> ASTNode:
+    left = parseSum(par)
 
-    if len(par.toks) and node.nodeType == "KEYWORD" and parseAt(par).tokType == "LPAREN" and parseAt(par).val == "(":
-        node.nodeType = "FNCALL"
-        node.children = parseExpression(par).children
+    if len(par.toks) and parseAt(par).val == "=":
+        parseConsume(par)
+        right = parseSum(par)
+
+        if left.nodeType not in ["KEYWORD", "TYPE_IDENT"]:
+            print(f"{left.file}:{left.line}:{left.col}: Attempting to assign to an invalid identifier.")
+            exit(1)
+
+        nType = "VARDECL"
+
+        if left.nodeType != "TYPE_IDENT":
+            nType = "ASSIGN"
+
+        left.nodeType = nType
+        left.children.append(right)
+
+    return left
+
+
+
+def parseExpression(par: Parser) -> ASTNode:
+    node = parseAssign(par)
+
+    if node.nodeType == "KEYWORD" and node.val == "return":
+        node.nodeType = "RETURN"
+        node.children.append(parseExpression(par))
 
     return node
 
