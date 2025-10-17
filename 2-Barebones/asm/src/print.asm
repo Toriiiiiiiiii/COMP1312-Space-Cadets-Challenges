@@ -74,5 +74,3 @@ print:
 	leave
 	ret
 
-newln str 10
-nZero str "0", 10

@@ -15,3 +15,53 @@ strlen:
 	pop		rdx
 	leave
 	ret	
+
+; Determine if the strings in %rdi and %rsi are equal.
+streq:
+	enter
+	push	rdx
+	push	rcx
+	push	rbx
+	push	rdi
+	push	rsi
+	call	strlen
+	
+	push	rdi
+	push	rax
+	mov		rdi, rsi
+	call	strlen
+	mov		rdx, rax
+	pop		rax
+	pop		rdi
+
+	cmp		rax, rdx
+	jne		streq_neq
+
+	mov		rdx, 0
+streq_loop:
+	cmp		rdx, rax
+	je		streq_eq
+
+	mov		bl, [rdi]
+	mov		cl, [rsi]	
+	cmp		bl, cl
+	jne		streq_neq
+
+	inc		rdi
+	inc		rsi
+	inc		rdx
+	jmp		streq_loop
+
+streq_neq:
+	mov		rax, 0
+	jmp		streq_done
+streq_eq:
+	mov		rax, 1
+streq_done:
+	pop		rsi
+	pop		rdi
+	pop		rbx
+	pop		rcx
+	pop		rdx
+	leave
+	ret
