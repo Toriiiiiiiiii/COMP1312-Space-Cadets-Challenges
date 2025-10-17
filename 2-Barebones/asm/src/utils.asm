@@ -65,3 +65,31 @@ streq_done:
 	pop		rdx
 	leave
 	ret
+
+
+; Convert string to unsigned integer
+; RDI - String to convert
+; Returns:
+; RAX - Converted number
+strton:
+	enter
+	push	rdi
+	push	rdx
+	mov		rax, 0
+	mov		rdx, rax
+strton_lp:	
+	mov		dl, [rdi]
+	cmp		dl, 0
+	je		strton_dn
+
+	imul	rax, 10
+	sub		dl, 48
+	add		rax, rdx
+	inc		rdi
+	jmp		strton_lp
+
+strton_dn:
+	pop		rdx
+	pop		rdi
+	leave
+	ret

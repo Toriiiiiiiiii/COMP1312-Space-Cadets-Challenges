@@ -1,11 +1,13 @@
 clear X;
-incr X;
-incr X;
-incr X;
+do 3;
+    incr X;
+enddo;
+
 clear Y;
-incr Y;
-incr Y;
-incr Y;
+do 4;
+    incr Y;
+enddo;
+
 clear Z;
 while X not 0 do;
    clear W;
@@ -13,12 +15,12 @@ while X not 0 do;
       incr Z;
       incr W;
       decr Y;
-   end;
+   endwhile;
    while W not 0 do;
       incr Y;
       decr W;
-   end;
+   endwhile;
    decr X;
-end;
+endwhile;
 
 print Z;

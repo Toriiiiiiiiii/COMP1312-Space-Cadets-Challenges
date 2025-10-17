@@ -63,104 +63,131 @@ tok_loop:
 
 	mov		rdx, 0
 	mov		rdi, cur_tok	
-	mov		rsi, tok_zero
-	call	streq
-	cmp		rax, 0
-	je		not_zero
 
-	getword	tok_buf, [cur_off], cur_tok
-	add		[cur_off], rbx
-	mov		dl, [cur_tok]
+	mov		rsi, tok_zero					; Check if token is 'clear'
+	call	streq							;
+	cmp		rax, 0							;
+	je		not_zero						;
 
-	enqueue OPC_ZERO, dl, 0
-	jmp		next_stmt
+	getword	tok_buf, [cur_off], cur_tok		; Get the variable to operate on
+	add		[cur_off], rbx					;
+	mov		dl, [cur_tok]					;
+
+	enqueue OPC_ZERO, dl, 0					; Add the operation to queue
+	jmp		next_stmt						; Restart loop
 
 not_zero:
-	mov		rsi, tok_incr
-	call	streq
-	cmp		rax, 0
-	je		not_incr
+	mov		rsi, tok_incr					; Check if token is 'incr'
+	call	streq							;
+	cmp		rax, 0							;
+	je		not_incr						;
 
-	getword	tok_buf, [cur_off], cur_tok
-	add		[cur_off], rbx
-	mov		dl, [cur_tok]
+	getword	tok_buf, [cur_off], cur_tok		; Get the variable to operate on
+	add		[cur_off], rbx					;
+	mov		dl, [cur_tok]					;
 
-	enqueue	OPC_INCR, dl, 0
-	jmp		next_stmt
+	enqueue	OPC_INCR, dl, 0					; Add the operation to queue
+	jmp		next_stmt						; Restart loop
 
 not_incr:
-	mov		rsi, tok_decr
-	call	streq
-	cmp		rax, 0
-	je		not_decr
+	mov		rsi, tok_decr					; Check if token is 'decr'
+	call	streq							;
+	cmp		rax, 0							;
+	je		not_decr						;
 
-	getword	tok_buf, [cur_off], cur_tok
-	add		[cur_off], rbx
-	mov		dl, [cur_tok]
+	getword	tok_buf, [cur_off], cur_tok		; Get the variable to operate on
+	add		[cur_off], rbx					;
+	mov		dl, [cur_tok]					;
 
-	enqueue	OPC_DECR, dl, 0
-	jmp		next_stmt
+	enqueue	OPC_DECR, dl, 0					; Add the operation to queue
+	jmp		next_stmt						; Restart loop
 
 not_decr:
-	mov		rsi, tok_outp
-	call	streq
-	cmp		rax, 0
-	je		not_outp
+	mov		rsi, tok_outp					; Check if token is 'print'
+	call	streq							;
+	cmp		rax, 0							;
+	je		not_outp						;
 
-	getword	tok_buf, [cur_off], cur_tok
-	add		[cur_off], rbx
-	mov		dl, [cur_tok]
+	getword	tok_buf, [cur_off], cur_tok		; Get the variable to operate on
+	add		[cur_off], rbx					;
+	mov		dl, [cur_tok]					;
 
-	enqueue OPC_OUTP, dl, 0
-	jmp		next_stmt
+	enqueue OPC_OUTP, dl, 0					; Add the operation to queue
+	jmp		next_stmt						; Restart loop
 	
 not_outp:	
-	mov		rsi, tok_whle
-	call	streq
-	cmp		rax, 0
-	je		not_whle
+	mov		rsi, tok_whle					; Check if token is 'while'
+	call	streq							;
+	cmp		rax, 0							;
+	je		not_whle						;
 
-	getword	tok_buf, [cur_off], cur_tok
-	add		[cur_off], rbx
-	mov		dl, [cur_tok]
+	getword	tok_buf, [cur_off], cur_tok		; Get the variable to operate on
+	add		[cur_off], rbx					;
+	mov		dl, [cur_tok]					;
 
-	enqueue	OPC_WHLE, dl, 0
-	jmp		next_stmt
+	enqueue	OPC_WHLE, dl, 0					; Add the operation to queue
+	jmp		next_stmt						; Restart loop
 
 not_whle:
-	mov		rsi, tok_endw
-	call	streq
-	cmp		rax, 0
-	je		not_endw
+	mov		rsi, tok_endw					; Check if token is 'endwhile'
+	call	streq							;
+	cmp		rax, 0							;
+	je		not_endw						;
 
-	enqueue	OPC_ENDW, 0, 0
-	jmp		next_stmt
+	enqueue	OPC_ENDW, 0, 0					; Add the operation to queue
+	jmp		next_stmt						; Restart loop
 
 not_endw:
+	mov		rsi, tok_do
+	call	streq
+	cmp		rax, 0
+	je		not_do
+
+	getword	tok_buf, [cur_off], cur_tok
+	mov		rdi, cur_tok
+	call	strton
+	mov		rcx, rax
+	
+	mov		rbx, [n_dos]
+	enqueue	OPC_DO, cl, bx
+	inc		rbx
+	mov		[n_dos], rbx
+	jmp		next_stmt
+
+not_do:
+	mov		rsi, tok_endd
+	call	streq
+	cmp		rax, 0
+	je		not_endd
+
+	enqueue	OPC_ENDD, 0, 0
+	jmp		next_stmt
+
+not_endd:
 	cmp		rax, 0							; If at end of statement, breakout
 	je		next_stmt
 	jmp		tok_loop						; Else, restart loop
 
 next_stmt:
-	pop		rdi
-	pop		rsi								; Restore registers
-	pop		rdx
-	pop		rcx
-	pop		rbx
-	pop		rax
+	pop		rdi								; Restore registers
+	pop		rsi								;
+	pop		rdx								;
+	pop		rcx								;
+	pop		rbx								;
+	pop		rax								;
 
 	mov		rbx, rdi						; End loop if at EOF.
-	sub		rbx, src						
-	cmp		rbx, [src_ln]					
-	jge		after_toks						
+	sub		rbx, src						;
+	cmp		rbx, [src_ln]					;
+	jge		after_toks						;
 
 	jmp 	get_toks
 after_toks:
-	enqueue	OPC_ENDP, 0, 0
-	call 	run_program
-	exit 	0
-	leave
-	ret
+	enqueue	OPC_ENDP, 0, 0					; Signify end of program in opqueue
+	call 	run_program						; Run the program
+	exit 	0								; Exit with code 0
+	leave									;
+	ret										;
 
 open_err:
 	write 	STDERR, err_opn, err_opn.size
@@ -180,93 +207,160 @@ run_program:
 	enter
 
 run_loop:
-	dequeue
-	cmp		rax, OPC_ENDP
-	je		run_done
+	dequeue										; Get the operation to run
+	cmp		rax, OPC_ENDP						; If at end of program, stop.
+	je		run_done							;
 
-	cmp		rax, OPC_ZERO
-	jne		run_notzero
+	cmp		rax, OPC_ZERO						; CLEAR operation
+	jne		run_notzero							
 
-	mov		qword [varTable+rbx*8], 0
-	jmp		run_loop
+	mov		qword [varTable+rbx*8], 0			; Zero out the variable
+	jmp		run_loop							; Restart loop
 run_notzero:
-	cmp		rax, OPC_INCR
+	cmp		rax, OPC_INCR						; INCR operation
 	jne		run_notincr
 
-	add		qword [varTable+rbx*8], 1
-	jmp		run_loop
+	add		qword [varTable+rbx*8], 1			; Increment the variable
+	jmp		run_loop							; Restart loop
 run_notincr:
-	cmp		rax, OPC_DECR
-	jne		run_notdecr
+	cmp		rax, OPC_DECR						; DECR operation
+	jne		run_notdecr							
 
-	sub		qword [varTable+rbx*8], 1
-	jmp		run_loop
+	sub		qword [varTable+rbx*8], 1			; Decrement the variable
+	jmp		run_loop							; Restart loop
 run_notdecr:
-	cmp		rax, OPC_OUTP
-	jne		run_notoutp
+	cmp		rax, OPC_OUTP						; PRINT operation
+	jne		run_notoutp							
 
-	mov		rax, [varTable+rbx*8]
-	call	print
-	jmp		run_loop
+	mov		rax, [varTable+rbx*8]				; Output the variable
+	call	print								;
+	jmp		run_loop							; Restart loop
 run_notoutp:
-	cmp		rax, OPC_WHLE
+	cmp		rax, OPC_WHLE						; WHILE operation
 	jne		run_notwhle
 
-	mov		rax, [varTable+rbx*8]
-	cmp		rax, 0
-	je		skip_whle
-	jmp		run_loop
+	mov		rax, [varTable+rbx*8]				; Get the variable to check
+	cmp		rax, 0								; Don't run loop if var is 0
+	je		skip_whle							;
+	jmp		run_loop							;
 skip_whle:
-	mov 	rcx, 1
+	mov 	rcx, 1								; WHILE operations - END operations
 skip_whle_lp:
-	push	rcx
+	push	rcx									; Get the next operation
 	dequeue	
 	pop		rcx
-	cmp		rax, OPC_ENDP
+
+	cmp		rax, OPC_ENDP						; If at end of program, throw error
 	je		err_no_end
-	cmp		rax, OPC_ENDW
+
+	cmp		rax, OPC_ENDW						; Check if op == OP_ENDW
 	jne		skip_notend
 
-	dec		rcx
-	cmp		rcx, 0
-	je		run_loop	
+	dec		rcx									; Decrement the counter
+	cmp		rcx, 0								; If WHILE == END, end loop
+	je		run_loop							;
 skip_notend:
-	cmp		rax, OPC_WHLE
+	cmp		rax, OPC_WHLE						; Check if op == OP_WHLE
 	jne		skip_notwhle
 
-	inc		rcx
+	inc		rcx									; Increment the counter
 skip_notwhle:
-	jmp		skip_whle_lp
+	jmp		skip_whle_lp						; Restart loop
+
 run_notwhle:
-	cmp		rax, OPC_ENDW
+	cmp		rax, OPC_ENDW						; ENDWHILE operation
 	jne		run_notendw
 
-	mov		rcx, 0
+	mov		rcx, 0								; WHILE operations - END operations
 endw_lp:
-	sub		qword [op_head], 4
-	mov		rdi, [op_head]
-	cmp		rdi, 0
-	jl		err_no_whle
+	sub		qword [op_head], 4					; Subtract queue pointer
+	mov		rdi, [op_head]						;
+	cmp		rdi, 0								; If past start of program, throw error
+	jl		err_no_whle							;
 
-	mov		rax, 0
-	mov		al, [op_queue+rdi]
-	cmp		al, OPC_WHLE
+	mov		rax, 0								; Get operation
+	mov		al, [op_queue+rdi]					;
+	cmp		al, OPC_WHLE						; Check if OP_WHLE
 	jne		endw_lp_notwhle
 
-	dec		rcx
-	cmp		rcx, 0
-	je		run_loop	
+	dec		rcx									; Decrement counter
+	cmp		rcx, 0								; If counter == 0, restart loop
+	je		run_loop							;
 endw_lp_notwhle:
-	cmp		al, OPC_ENDW
-	jne		endw_lp_notendw
+	cmp		al, OPC_ENDW						; Check if OP_ENDW
+	jne		endw_lp_notendw			
 
-	inc		rcx
+	inc		rcx									; Increment the counter
 endw_lp_notendw:
-	jmp		endw_lp
+	jmp		endw_lp								; Restart ENWHILE loop
+
 run_notendw:
-	jmp		run_loop
+	cmp		rax, OPC_DO
+	jne		run_notdo
+
+	mov		rax, [do_counters+rcx*8]
+	cmp		rax, rbx
+	jge		skip_do
+
+	inc		rax
+	mov		[do_counters+rcx*8], rax
+	jmp		run_loop							; Restart run loop
+skip_do:
+	mov 	rcx, 1								; WHILE operations - END operations
+skip_do_lp:
+	push	rcx									; Get the next operation
+	dequeue	
+	pop		rcx
+
+	cmp		rax, OPC_ENDP						; If at end of program, throw error
+	je		err_no_end
+
+	cmp		rax, OPC_ENDD						; Check if op == OP_ENDW
+	jne		skip_notendd
+
+	dec		rcx									; Decrement the counter
+	cmp		rcx, 0								; If WHILE == END, end loop
+	je		run_loop							;
+skip_notendd:
+	cmp		rax, OPC_DO							; Check if op == OP_WHLE
+	jne		skip_notdo
+
+	inc		rcx									; Increment the counter
+skip_notdo:
+	jmp		skip_do_lp							; Restart loop
+
+run_notdo:
+	cmp		rax, OPC_ENDD						; ENDWHILE operation
+	jne		run_notendd
+
+	mov		rcx, 0								; WHILE operations - END operations
+endd_lp:
+	sub		qword [op_head], 4					; Subtract queue pointer
+	mov		rdi, [op_head]						;
+	cmp		rdi, 0								; If past start of program, throw error
+	jl		err_no_whle							;
+
+	mov		rax, 0								; Get operation
+	mov		al, [op_queue+rdi]					;
+	cmp		al, OPC_DO							; Check if OP_WHLE
+	jne		endd_lp_notdo
+
+	dec		rcx									; Decrement counter
+	cmp		rcx, 0								; If counter == 0, restart loop
+	je		run_loop							;
+endd_lp_notdo:
+	cmp		al, OPC_ENDD						; Check if OP_ENDW
+	jne		endd_lp_notendd			
+
+	inc		rcx									; Increment the counter
+endd_lp_notendd:
+	jmp		endd_lp								; Restart ENWHILE loop
+
+run_notendd:
+	;jmp		run_loop
+
 run_done:
-	leave
+	leave										; Return from subroutine
 	ret
 
 err_no_whle:
@@ -309,7 +403,9 @@ tok_incr: db "incr", 0
 tok_decr: db "decr", 0
 tok_outp: db "print", 0
 tok_whle: db "while", 0
-tok_endw: db "end", 0
+tok_endw: db "endwhile", 0
+tok_do:   db "do", 0
+tok_endd: db "enddo", 0
 
 varTable: rq 256
 op_head: dq 0
@@ -319,6 +415,12 @@ op_tail: dq 0
 op_queue:
 repeat 2048
 	rb 4
+end repeat
+
+n_dos: dq 0
+do_counters: 
+repeat 256
+	dq 0
 end repeat
 
 newln str 10
