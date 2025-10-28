@@ -11,6 +11,7 @@ lex_getStatement:
 	push 	rsi
 	push	rdx
 
+lex_gs:
 	mov		rax, 0
 	mov		rdx, 0	
 lex_skip_whitespace:
@@ -34,8 +35,9 @@ lex_gs_loop:
 
 	cmp		dl, 10
 	je 		lex_gs_skip_append
-	;cmp		dl, 9
-	;je 		lex_gs_skip_append
+
+	cmp		dl, '#'
+	je		lex_gs_skip_comment
 
 	mov		[rsi], dl
 	inc		rsi
@@ -44,6 +46,15 @@ lex_gs_skip_append:
 	inc		rdi
 
 	jmp		lex_gs_loop
+lex_gs_skip_comment:
+	inc		rdi
+	mov		dl, [rdi]
+	cmp		dl, 10
+	je		lex_gs
+	cmp		dl, 0
+	je		lex_gs
+
+	jmp		lex_gs_skip_comment
 lex_gs_done:
 	pop 	rdx
 	pop 	rsi

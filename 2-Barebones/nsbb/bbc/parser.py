@@ -110,7 +110,7 @@ def parseAtom(par: Parser) -> ASTNode:
         return ASTNode(tok.line, tok.col, tok.file, "TYPE_IDENT", f"{tok.val}:{ident.val}")
 
     elif tok.tokType == "KEYWORD":
-        if tok.val == "defun":
+        if tok.val == "function":
             # Get function name
             name = parseConsume(par)
             if name.tokType != "KEYWORD":
@@ -118,7 +118,7 @@ def parseAtom(par: Parser) -> ASTNode:
                 exit(1)
 
             # Get function parameters
-            params = parseStatement(par)
+            params = parseExpression(par)
             if params.nodeType != "PAREN":
                 print(f"{tok.file}:{params.line}:{params.col}: Syntax Error - Expected parameters in function definition.")
                 exit(1)

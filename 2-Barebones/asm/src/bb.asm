@@ -357,7 +357,7 @@ endd_lp_notendd:
 	jmp		endd_lp								; Restart ENWHILE loop
 
 run_notendd:
-	;jmp		run_loop
+	jmp		run_loop
 
 run_done:
 	leave										; Return from subroutine
@@ -377,7 +377,6 @@ err_no_end:
 ; DATA SEGMENT
 segment readable writeable
 
-msg		str "here", 10
 err_opn	str "ERROR : Could not open file.", 10
 err_arg str "USAGE : bb <filename>", 10
 err_end str "ERROR : Unterminated WHLE loop.", 10

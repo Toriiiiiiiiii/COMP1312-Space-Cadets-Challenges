@@ -7,36 +7,17 @@ section .text
 extern printf
 extern _exit
 global main
-divide:
-	enter 16, 0
-	call __stk_pop
-	mov [rsp+0], rax
-	call __stk_pop
-	mov [rsp+8], rax
-	mov rax, [rsp+0]
+main:
+	enter 0, 0
+	mov rax, 34
 	call __stk_push
-	mov rax, [rsp+8]
+	mov rax, 35
 	call __stk_push
 	call __stk_pop
 	mov rdi, rax
 	call __stk_pop
-	mov rdx, 0
-	div rdi
+	add rax, rdi
 	call __stk_push
-	leave
-	ret
-
-	; Fallthrough in case function doesn't use RETURN.
-	leave
-	ret
-
-main:
-	enter 0, 0
-	mov rax, 16
-	call __stk_push
-	mov rax, 2
-	call __stk_push
-	call divide
 	leave
 	ret
 
