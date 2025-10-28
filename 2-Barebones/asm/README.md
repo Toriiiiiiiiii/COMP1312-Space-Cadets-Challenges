@@ -3,7 +3,8 @@
 
 ## Introduction
 Hi! This is my solution to the week 2 & 3 challenges for Space Cadets. It is a (barely functional) barebones interpreter, written ~~with hopes and dreams~~ using x86_64 fasm assembly for linux, with no libraries (not even libc!)
--# Please note that this solution will only be functional on x86_64-based machines running Linux, and is *only* tested on my personal machine. If you want to run this, good luck!
+
+> *Please note that this solution will only be functional on x86_64-based machines running Linux, and is *only* tested on my personal machine. If you want to run this, good luck!*
 
 ## Why?
 I did this for the same reason humans do anything - pure overconfidence. This project has consumed hours of my life and left me in tears at least 3 times. Don't expect to understand this code - I don't even understand a large amount of it.
@@ -39,4 +40,4 @@ The code is layed out as following:
 * `src/utils.asm`: General utility functions like `strlen` and `strton`.
 
 
--# Segfault Counter: 37
+> *Segfault Counter: 37*
