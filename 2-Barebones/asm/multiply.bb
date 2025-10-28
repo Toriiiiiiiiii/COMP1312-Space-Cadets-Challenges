@@ -1,14 +1,6 @@
 # Test comment
-clear X;
-do 3;
-    incr X;
-enddo;
-
-# Another test comment
-clear Y;
-do 4;
-    incr Y;
-enddo;
+read X;
+read Y;
 
 clear Z;
 while X not 0 do;

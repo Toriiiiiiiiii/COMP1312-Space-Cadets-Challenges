@@ -6,6 +6,7 @@ OPC_WHLE = 4
 OPC_ENDW = 5
 OPC_DO   = 6
 OPC_ENDD = 7
+OPC_READ = 8
 
 OPC_ENDP = 255
 

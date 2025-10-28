@@ -93,3 +93,27 @@ strton_dn:
 	pop		rdi
 	leave
 	ret
+
+
+; Read a number from STDIN
+; Returns:
+; RAX - Converted number
+readn:
+	enter
+
+	mov		rsi, strton_buf
+	mov		rax, 0
+	mov		rdi, 0
+	mov		rdx, 40
+	syscall
+
+	dec		rax
+	mov		byte [strton_buf+rax], 0
+
+	mov		rax, 0
+	mov		rdi, strton_buf
+	call	strton
+
+readn_dn:
+	leave
+	ret

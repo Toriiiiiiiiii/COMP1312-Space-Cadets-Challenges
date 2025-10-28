@@ -164,6 +164,19 @@ not_do:
 	jmp		next_stmt
 
 not_endd:
+	mov		rsi, tok_read
+	call	streq
+	cmp		rax, 0
+	je		not_read
+
+	getword	tok_buf, [cur_off], cur_tok		; Get the variable to operate on
+	add		[cur_off], rbx					;
+	mov		dl, [cur_tok]					;
+
+	enqueue	OPC_READ, dl, 0
+	jmp		next_stmt
+
+not_read:
 	cmp		rax, 0							; If at end of statement, breakout
 	je		next_stmt
 	jmp		tok_loop						; Else, restart loop
@@ -357,6 +370,18 @@ endd_lp_notendd:
 	jmp		endd_lp								; Restart ENWHILE loop
 
 run_notendd:
+	cmp		rax, OPC_READ
+	jne		run_notread
+
+	push	rbx
+	mov		[prompt_msg], bl
+	write	STDOUT, prompt_msg, prompt_msg.size	
+	call	readn
+	pop		rbx
+	mov		[varTable+rbx*8], rax
+	jmp		run_loop							; Restart loop
+
+run_notread:
 	jmp		run_loop
 
 run_done:
@@ -405,6 +430,9 @@ tok_whle: db "while", 0
 tok_endw: db "endwhile", 0
 tok_do:   db "do", 0
 tok_endd: db "enddo", 0
+tok_read: db "read", 0
+
+prompt_msg str " : ", 0
 
 varTable: rq 256
 op_head: dq 0
@@ -421,6 +449,8 @@ do_counters:
 repeat 256
 	dq 0
 end repeat
+
+strton_buf: rb 40
 
 newln str 10
 nZero str "0", 10

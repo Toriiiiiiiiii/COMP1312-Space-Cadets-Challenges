@@ -1,0 +1,2 @@
+read X;
+print X;
